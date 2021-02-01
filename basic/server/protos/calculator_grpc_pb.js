@@ -2,7 +2,7 @@
 
 'use strict';
 var grpc = require('grpc');
-var protos_calculator_pb = require('../protos/calculator_pb.js');
+var protos_calculator_pb = require('./calculator_pb.js');
 
 function serialize_calculator_SumRequest(arg) {
   if (!(arg instanceof protos_calculator_pb.SumRequest)) {

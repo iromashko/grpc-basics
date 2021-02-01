@@ -2,7 +2,7 @@
 
 'use strict';
 var grpc = require('grpc');
-var protos_dummy_pb = require('../protos/dummy_pb.js');
+var protos_dummy_pb = require('./dummy_pb.js');
 
 
 var DummyServiceService = exports.DummyServiceService = {

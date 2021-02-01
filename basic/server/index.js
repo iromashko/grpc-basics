@@ -1,8 +1,8 @@
-let greets = require('../server/protos/greet_pb');
-let service = require('../server/protos/greet_grpc_pb');
+let greets = require('./protos/greet_pb');
+let service = require('./protos/greet_grpc_pb');
 
-let calc = require('../server/protos/calculator_pb');
-let calcService = require('../server/protos/calculator_grpc_pb');
+let calc = require('./protos/calculator_pb');
+let calcService = require('./protos/calculator_grpc_pb');
 
 const grpc = require('grpc');
 
