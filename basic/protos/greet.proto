@@ -4,6 +4,26 @@ package greet;
 
 service GreetService {
   rpc Greet (GreetRequest) returns (GreetResponse) {}
+
+  rpc GreetManyTimes (GreetManyTimesRequest) returns (stream GreetManyTimesResponse) {}
+
+  rpc LongGreet (stream LongGreetRequest) returns (LongGreetResponse) {}
+}
+
+message LongGreetRequest {
+  Greeting greet = 1;
+}
+
+message LongGreetResponse {
+  string result = 1;
+}
+
+message GreetManyTimesRequest {
+  Greeting greeting = 1;
+}
+
+message GreetManyTimesResponse {
+  string result = 1;
 }
 
 message Greeting {

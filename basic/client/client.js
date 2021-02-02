@@ -39,6 +39,7 @@ function callSum() {
 
   sumRequest.setFirstNumber(10);
   sumRequest.setSecondNumber(22);
+
   client.sum(sumRequest, (error, response) => {
     if (!error) {
       console.log(
@@ -54,9 +55,111 @@ function callSum() {
   });
 }
 
+function callGreetManyTimes() {
+  let client = new service.GreetServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let request = new greets.GreetManyTimesRequest();
+  let greeting = new greets.Greeting();
+  greeting.setFirstName('Paulo');
+  greeting.setLastName('Dichone');
+
+  request.setGreeting(greeting);
+
+  let call = client.greetManyTimes(request, () => {});
+
+  call.on('data', (response) => {
+    console.log(`Client Streaming Response: ${response.getResult()}`);
+  });
+
+  call.on('status', (status) => {
+    console.log(status);
+  });
+
+  call.on('error', (error) => {
+    console.error(error.details);
+  });
+
+  call.on('end', () => {
+    console.log(`Streaming Ended!`);
+  });
+}
+
+function callPrimeNumberDecomposition() {
+  let client = new calcService.CalculatorServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+  let request = new calc.PrimeNumberDecompositionRequest();
+
+  let number = 567890;
+  request.setNumber(number);
+
+  let call = client.primeNumberDecomposition(request, () => {});
+  call.on('data', (response) => {
+    console.log(`Prime Factors Found: `, response.getPrimeFactor());
+  });
+  call.on('error', (error) => {
+    console.error(error);
+  });
+  call.on('status', (status) => {
+    console.log(status);
+  });
+  call.on('end', () => {
+    console.log(`Streaming Ended`);
+  });
+}
+
+function callLongGreeting() {
+  let client = new service.GreetServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+  let request = new greets.LongGreetRequest();
+  let call = client.longGreet(request, (error, response) => {
+    if (!error) {
+      console.log(`Server response: `, response.getResult());
+    } else {
+      console.error(error);
+    }
+  });
+
+  let count = 0;
+  let intervalId = setInterval(() => {
+    console.log(`Sending message ${count}`);
+
+    let request = new greets.LongGreetRequest();
+    let greeting = new greets.Greeting();
+    greeting.setFirstName('Paulo');
+    greeting.setLastName('Dichone');
+
+    request.setGreet(greeting);
+
+    let requestTwo = new greets.LongGreetRequest();
+    let greetingTwo = new greets.Greeting();
+    greetingTwo.setFirstName('I am');
+    greetingTwo.setLastName('Romashko');
+
+    requestTwo.setGreet(greetingTwo);
+
+    call.write(request);
+    call.write(requestTwo);
+
+    if (++count > 3) {
+      clearInterval(intervalId);
+      call.end();
+    }
+  }, 1000);
+}
+
 function main() {
+  // callGreetManyTimes();
+  // callPrimeNumberDecomposition();
   // callGreetings();
-  callSum();
+  // callSum();
+  callLongGreeting();
 }
 
 main();

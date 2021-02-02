@@ -16,6 +16,43 @@ function sum(call, callback) {
   callback(null, sumResponse);
 }
 
+function greetManyTimes(call, callback) {
+  let firstName = call.request.getGreeting().getFirstName();
+
+  let count = 0;
+  let intervalId = setInterval(() => {
+    let greetManyTimesResponse = new greets.GreetManyTimesResponse();
+    greetManyTimesResponse.setResult(firstName);
+
+    call.write(greetManyTimesResponse);
+
+    if (++count > 9) {
+      clearInterval(intervalId);
+      call.end();
+    } else {
+      count++;
+    }
+  }, 1000);
+}
+
+function primeNumberDecomposition(call, callback) {
+  let number = call.request.getNumber();
+  let divisor = 2;
+  while (number > 1) {
+    if (number % divisor === 0) {
+      let primeNumberDecompositionResponse = new calc.PrimeNumberDecompositionResponse();
+      primeNumberDecompositionResponse.setPrimeFactor(divisor);
+      number = number / divisor;
+      call.write(primeNumberDecompositionResponse);
+    } else {
+      divisor++;
+      console.log(`Divisor has increased to ${divisor}`);
+    }
+  }
+
+  call.end('');
+}
+
 function greet(call, callback) {
   let greeting = new greets.GreetResponse();
 
@@ -29,10 +66,36 @@ function greet(call, callback) {
   callback(null, greeting);
 }
 
+function longGreet(call, callback) {
+  call.on('data', (request) => {
+    let fullName = `${request
+      .getGreet()
+      .getFirstName()} ${request.getGreet().getLastName()}`;
+
+    console.log(`Hello ${fullName}`);
+  });
+
+  call.on('error', (error) => {
+    console.error(error);
+  });
+  call.on('end', () => {
+    let response = new greets.LongGreetResponse();
+    response.setResult('Long Greet Client Streaming....');
+    callback(null, response);
+  });
+}
+
 function main() {
   let server = new grpc.Server();
-  // server.addService(service.GreetServiceService, { greet });
-  server.addService(calcService.CalculatorServiceService, { sum });
+  server.addService(service.GreetServiceService, {
+    greet,
+    greetManyTimes,
+    longGreet,
+  });
+  server.addService(calcService.CalculatorServiceService, {
+    sum,
+    primeNumberDecomposition,
+  });
 
   server.bind('127.0.0.1:50051', grpc.ServerCredentials.createInsecure());
   server.start();
