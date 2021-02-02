@@ -154,12 +154,39 @@ function callLongGreeting() {
   }, 1000);
 }
 
+function callComputeAverage() {
+  let client = new calcService.CalculatorServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+  let request = new calc.ComputeAverageRequest();
+  let call = client.computeAverage(request, (error, response) => {
+    if (!error) {
+      console.log(
+        `Received a response from the server - Average: ${response.getAverage()}`
+      );
+    } else {
+      console.error(error);
+    }
+  });
+
+  for (let i = 0; i < 1000; i++) {
+    let request = new calc.ComputeAverageRequest();
+    request.setNumber(i);
+    call.write(request);
+  }
+
+  call.end();
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
   // callGreetings();
   // callSum();
-  callLongGreeting();
+  // callLongGreeting();
+
+  callComputeAverage();
 }
 
 main();

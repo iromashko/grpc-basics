@@ -53,6 +53,30 @@ function primeNumberDecomposition(call, callback) {
   call.end('');
 }
 
+function computeAverage(call, callback) {
+  let sum = 0;
+  let count = 0;
+
+  call.on('data', (request) => {
+    sum += request.getNumber();
+    console.log(`Got number: ${request.getNumber()}`);
+    count++;
+  });
+
+  call.on('error', (err) => {
+    console.log(err);
+  });
+
+  call.on('end', () => {
+    let average = sum / count;
+
+    let response = new calc.ComputeAverageResponse();
+    response.setAverage(average);
+
+    callback(null, response);
+  });
+}
+
 function greet(call, callback) {
   let greeting = new greets.GreetResponse();
 
@@ -95,6 +119,7 @@ function main() {
   server.addService(calcService.CalculatorServiceService, {
     sum,
     primeNumberDecomposition,
+    computeAverage
   });
 
   server.bind('127.0.0.1:50051', grpc.ServerCredentials.createInsecure());
