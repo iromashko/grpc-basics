@@ -109,18 +109,58 @@ function longGreet(call, callback) {
   });
 }
 
+async function sleep(interval) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), interval);
+  });
+}
+
+async function greetEveryone(call, callback) {
+  call.on('data', (response) => {
+    let fullName = `${response
+      .getGreet()
+      .getFirstName()} ${response.getGreet().getLastName()}`;
+
+    console.log(`Hello ${fullName}`);
+  });
+
+  call.on('error', (error) => {
+    console.error(error);
+  });
+
+  call.on('end', () => {
+    console.log(`The End...`);
+  });
+
+  for (let i = 0; i < 10; i++) {
+    // let greeting = new greets.Greeting();
+    // greeting.setFirstName('I am');
+    // greeting.setLastName('Romashko');
+
+    let request = new greets.GreetEveryoneResponse();
+    request.setResult('I am Romashko');
+
+    call.write(request);
+
+    await sleep(1000);
+  }
+
+  call.end();
+}
+
 function main() {
   let server = new grpc.Server();
   server.addService(service.GreetServiceService, {
     greet,
     greetManyTimes,
     longGreet,
+    greetEveryone,
   });
-  server.addService(calcService.CalculatorServiceService, {
-    sum,
-    primeNumberDecomposition,
-    computeAverage
-  });
+  // server.addService(calcService.CalculatorServiceService, {
+  //   sum,
+  //   primeNumberDecomposition,
+  //   computeAverage
+  // });
 
   server.bind('127.0.0.1:50051', grpc.ServerCredentials.createInsecure());
   server.start();

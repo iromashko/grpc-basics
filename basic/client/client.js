@@ -179,14 +179,63 @@ function callComputeAverage() {
   call.end();
 }
 
+async function sleep(interval) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), interval);
+  });
+}
+
+async function callBiDirect() {
+  console.log(`Hello i'm a gRPC Client`);
+
+  let request = new greets.GreetEveryoneRequest();
+
+
+  let client = new service.GreetServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let call = client.greetEveryone(request, (error, response) => {
+    console.log(`Server Response: ${response}`);
+  });
+
+  call.on('data', (response) => {
+    console.log(`Hello Client ${response.getResult()}`);
+  });
+
+  call.on('error', (error) => {
+    console.error(error);
+  });
+
+  call.on('end', () => {
+    console.log(`Client The End`);
+  });
+
+  for (let i = 0; i < 10; i++) {
+    let greeting = new greets.Greeting();
+    greeting.setFirstName('Stephane');
+    greeting.setLastName('Maarek');
+
+    let request = new greets.GreetEveryoneRequest();
+    request.setGreet(greeting);
+
+    call.write(request);
+
+    await sleep(1500);
+  }
+
+  call.end();
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
   // callGreetings();
   // callSum();
   // callLongGreeting();
-
-  callComputeAverage();
+  // callComputeAverage();
+  callBiDirect();
 }
 
 main();
