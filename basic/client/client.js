@@ -185,11 +185,46 @@ async function sleep(interval) {
   });
 }
 
-async function callBiDirect() {
+async function callByDiFindMaximum() {
   console.log(`Hello i'm a gRPC Client`);
 
   let request = new greets.GreetEveryoneRequest();
 
+  let client = new calcService.CalculatorServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let call = client.findMaximum(request, (error, response) => {
+    call.on('data', (response) => {
+      console.log(`Got new Max from server => ${response.getMaximum()}`);
+    });
+    call.on('error', (error) => {
+      console.error(error);
+    });
+    call.on('end', () => {
+      console.log(`Server is completed sending messages`);
+    });
+  });
+
+  let data = [3, 5, 17, 9, 8, 30, 12];
+
+  for (let i = 0; i < data.length; i++) {
+    let request = new calc.FindMaximumRequest();
+    console.log(`Sending number: ${data[i]}`);
+    request.setNumber(data[i]);
+    call.write(request);
+    await sleep(1000);
+  }
+
+  call.end();
+  await sleep(1000);
+}
+
+async function callBiDirect() {
+  console.log(`Hello i'm a gRPC Client`);
+
+  let request = new greets.GreetEveryoneRequest();
 
   let client = new service.GreetServiceClient(
     'localhost:50051',
@@ -235,7 +270,8 @@ function main() {
   // callSum();
   // callLongGreeting();
   // callComputeAverage();
-  callBiDirect();
+  // callBiDirect();
+  callByDiFindMaximum();
 }
 
 main();

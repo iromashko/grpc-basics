@@ -147,20 +147,53 @@ async function greetEveryone(call, callback) {
 
   call.end();
 }
+function findMaximum(call, callback) {
+  let currentMaximum = 0;
+  let currentNumber = 0;
+
+  call.on('data', (request) => {
+    currentNumber = request.getNumber();
+
+    if (currentNumber > currentMaximum) {
+      currentMaximum = currentNumber;
+
+      let response = new calc.FindMaximumResponse();
+      response.setMaximum(currentMaximum);
+      call.write(response);
+    } else {
+      //
+    }
+
+    console.log(`Streamed number:  ${request.getNumber()}`);
+  });
+
+  call.on('error', (err) => {
+    console.error(err);
+  });
+
+  call.on('end', () => {
+    let response = new calc.FindMaximumResponse();
+    response.setMaximum(currentMaximum);
+    call.write(response);
+    call.end();
+    console.log('The End!');
+  });
+}
 
 function main() {
   let server = new grpc.Server();
-  server.addService(service.GreetServiceService, {
-    greet,
-    greetManyTimes,
-    longGreet,
-    greetEveryone,
-  });
-  // server.addService(calcService.CalculatorServiceService, {
-  //   sum,
-  //   primeNumberDecomposition,
-  //   computeAverage
+  // server.addService(service.GreetServiceService, {
+  //   greet,
+  //   greetManyTimes,
+  //   longGreet,
+  //   greetEveryone,
   // });
+  server.addService(calcService.CalculatorServiceService, {
+    sum,
+    primeNumberDecomposition,
+    computeAverage,
+    findMaximum
+  });
 
   server.bind('127.0.0.1:50051', grpc.ServerCredentials.createInsecure());
   server.start();
