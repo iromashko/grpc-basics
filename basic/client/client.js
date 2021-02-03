@@ -263,7 +263,26 @@ async function callBiDirect() {
   call.end();
 }
 
+function getRPCDeadline(rpcType) {
+  timeAllowed = 5000;
+
+  switch (rpcType) {
+    case 1:
+      timeAllowed = 1000;
+      break;
+    case 2:
+      timeAllowed = 7000;
+      break;
+    default:
+      console.log(`Invalid RPC Type: Using Default Timeout`);
+  }
+
+  return new Date(Date.now() + timeAllowed);
+}
+
 function doErrorCall() {
+  let deadline = getRPCDeadline(1);
+
   console.log(`Hello i'm a gRPC Client`);
 
   // let request = new calc.CalculatorServiceClient();
@@ -277,7 +296,7 @@ function doErrorCall() {
   let squareRootRequest = new calc.SquareRootRequest();
   squareRootRequest.setNumber(number);
 
-  client.squareRoot(squareRootRequest, (error, response) => {
+  client.squareRoot(squareRootRequest, { deadline }, (error, response) => {
     if (!error) {
       console.log(`Square root is `, response.getNumberRoot());
     } else {
