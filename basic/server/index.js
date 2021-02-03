@@ -8,6 +8,10 @@ const fs = require('fs');
 
 const grpc = require('grpc');
 
+const environment = process.env.ENVIRONMENT || 'development';
+const config = require('./knexfile')[environment];
+const knex = require('knex')(config);
+
 function sum(call, callback) {
   let sumResponse = new calc.SumResponse();
 
