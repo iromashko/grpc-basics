@@ -4,6 +4,9 @@ let service = require('../server/protos/greet_grpc_pb');
 let calc = require('../server/protos/calculator_pb');
 let calcService = require('../server/protos/calculator_grpc_pb');
 
+let blogs = require('../server/protos/blog_pb');
+let blogService = require('../server/protos/blog_grpc_pb');
+
 const fs = require('fs');
 
 let grpc = require('grpc');
@@ -313,6 +316,27 @@ function doErrorCall() {
   });
 }
 
+function callListBlogs() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+  let emptyBlogRequest = new blogs.ListBlogRequest();
+  let call = client.listBlog(emptyBlogRequest, () => {});
+
+  call.on('data', (response) => {
+    console.log(
+      `Client streaming response: ${response.getBlog().toString()}`
+    );
+  });
+  call.on('error', (error) => {
+    console.error(error);
+  });
+  call.on('end', () => {
+    console.log(`End`);
+  });
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
@@ -323,6 +347,7 @@ function main() {
   // callBiDirect();
   // callByDiFindMaximum();
   // doErrorCall();
+  callListBlogs();
 }
 
 main();

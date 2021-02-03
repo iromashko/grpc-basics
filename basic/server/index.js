@@ -30,9 +30,9 @@ function listBlog(call, cb) {
 
       call.write(blogResponse);
     });
+    call.end();
   });
 
-  call.end();
 }
 
 function sum(call, callback) {
