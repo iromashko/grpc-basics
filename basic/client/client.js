@@ -4,7 +4,15 @@ let service = require('../server/protos/greet_grpc_pb');
 let calc = require('../server/protos/calculator_pb');
 let calcService = require('../server/protos/calculator_grpc_pb');
 
+const fs = require('fs');
+
 let grpc = require('grpc');
+
+const credentials = grpc.credentials.createSsl(
+  fs.readFileSync('../certs/ca.crt'),
+  fs.readFileSync('../certs/client.key'),
+  fs.readFileSync('../certs/client.crt')
+);
 
 function callGreetings() {
   console.log(`hello`);
@@ -289,10 +297,10 @@ function doErrorCall() {
 
   let client = new calcService.CalculatorServiceClient(
     'localhost:50051',
-    grpc.credentials.createInsecure()
+    credentials
   );
 
-  let number = -1;
+  let number = 16;
   let squareRootRequest = new calc.SquareRootRequest();
   squareRootRequest.setNumber(number);
 
