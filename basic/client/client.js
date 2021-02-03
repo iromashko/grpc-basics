@@ -188,7 +188,7 @@ async function sleep(interval) {
 async function callByDiFindMaximum() {
   console.log(`Hello i'm a gRPC Client`);
 
-  let request = new greets.GreetEveryoneRequest();
+  let request = new calc.FindMaximumRequest();
 
   let client = new calcService.CalculatorServiceClient(
     'localhost:50051',
@@ -263,6 +263,29 @@ async function callBiDirect() {
   call.end();
 }
 
+function doErrorCall() {
+  console.log(`Hello i'm a gRPC Client`);
+
+  // let request = new calc.CalculatorServiceClient();
+
+  let client = new calcService.CalculatorServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let number = -1;
+  let squareRootRequest = new calc.SquareRootRequest();
+  squareRootRequest.setNumber(number);
+
+  client.squareRoot(squareRootRequest, (error, response) => {
+    if (!error) {
+      console.log(`Square root is `, response.getNumberRoot());
+    } else {
+      console.log(error);
+    }
+  });
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
@@ -271,7 +294,8 @@ function main() {
   // callLongGreeting();
   // callComputeAverage();
   // callBiDirect();
-  callByDiFindMaximum();
+  // callByDiFindMaximum();
+  doErrorCall();
 }
 
 main();

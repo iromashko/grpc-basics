@@ -180,6 +180,21 @@ function findMaximum(call, callback) {
   });
 }
 
+function squareRoot(call, callback) {
+  let number = call.request.getNumber();
+  if (number >= 0) {
+    let numberRoot = Math.sqrt(number);
+    let response = new calc.SquareRootResponse();
+    response.setNumberRoot(numberRoot);
+    callback(null, response);
+  } else {
+    return callback({
+      code: grpc.status.INVALID_ARGUMENT,
+      message: `The number being sent in not positive - Number Sent: ${number}`,
+    });
+  }
+}
+
 function main() {
   let server = new grpc.Server();
   // server.addService(service.GreetServiceService, {
@@ -192,7 +207,8 @@ function main() {
     sum,
     primeNumberDecomposition,
     computeAverage,
-    findMaximum
+    findMaximum,
+    squareRoot,
   });
 
   server.bind('127.0.0.1:50051', grpc.ServerCredentials.createInsecure());
