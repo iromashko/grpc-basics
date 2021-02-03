@@ -295,9 +295,9 @@ function doErrorCall() {
 
   // let request = new calc.CalculatorServiceClient();
 
-  let client = new calcService.CalculatorServiceClient(
+  let client = new service.GreetServiceClient(
     'localhost:50051',
-    credentials
+    grpc.credentials.createInsecure()
   );
 
   let number = 16;
@@ -322,7 +322,7 @@ function main() {
   // callComputeAverage();
   // callBiDirect();
   // callByDiFindMaximum();
-  doErrorCall();
+  // doErrorCall();
 }
 
 main();

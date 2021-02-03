@@ -4,6 +4,9 @@ let service = require('./protos/greet_grpc_pb');
 let calc = require('./protos/calculator_pb');
 let calcService = require('./protos/calculator_grpc_pb');
 
+let blogs = require('./protos/blog_pb');
+let blogService = require('./protos/blog_grpc_pb');
+
 const fs = require('fs');
 
 const grpc = require('grpc');
@@ -11,6 +14,26 @@ const grpc = require('grpc');
 const environment = process.env.ENVIRONMENT || 'development';
 const config = require('./knexfile')[environment];
 const knex = require('knex')(config);
+
+function listBlog(call, cb) {
+  console.log(`Received list blog request`);
+  knex('blogs').then((data) => {
+    data.forEach((el) => {
+      let blog = new blogs.Blog();
+      blog.setId(el.id);
+      blog.setAuthor(el.author);
+      blog.setTitle(el.title);
+      blog.setContent(el.content);
+
+      let blogResponse = new blogs.ListBlogResponse();
+      blogResponse.setBlog(blog);
+
+      call.write(blogResponse);
+    });
+  });
+
+  call.end();
+}
 
 function sum(call, callback) {
   let sumResponse = new calc.SumResponse();
@@ -216,21 +239,18 @@ function main() {
   let unsafeCreds = grpc.ServerCredentials.createInsecure();
 
   let server = new grpc.Server();
-  // server.addService(service.GreetServiceService, {
-  //   greet,
-  //   greetManyTimes,
-  //   longGreet,
-  //   greetEveryone,
-  // });
-  server.addService(calcService.CalculatorServiceService, {
-    sum,
-    primeNumberDecomposition,
-    computeAverage,
-    findMaximum,
-    squareRoot,
+  server.addService(blogService.BlogServiceService, {
+    listBlog,
   });
+  // server.addService(calcService.CalculatorServiceService, {
+  //   sum,
+  //   primeNumberDecomposition,
+  //   computeAverage,
+  //   findMaximum,
+  //   squareRoot,
+  // });
 
-  server.bind('127.0.0.1:50051', credentials);
+  server.bind('127.0.0.1:50051', unsafeCreds);
   server.start();
   console.log(`Server running on port 127.0.0.1:50051`);
 }
