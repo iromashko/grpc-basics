@@ -316,6 +316,36 @@ function doErrorCall() {
   });
 }
 
+function createBlog() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let blog = new blogs.Blog();
+  blog.setAuthor('Baby G');
+  blog.setTitle('Baby blog post');
+  blog.setContent('This is a great post');
+
+  let blogRequest = new blogs.CreateBlogRequest();
+  blogRequest.setBlog(blog);
+
+  client.createBlog(blogRequest, (error, response) => {
+    if (!error) {
+      console.log(`Received create blog response ${response.toString()}`);
+    } else {
+      console.error(error);
+    }
+  });
+}
+
+function readBlog() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+}
+
 function callListBlogs() {
   let client = new blogService.BlogServiceClient(
     'localhost:50051',
@@ -337,6 +367,27 @@ function callListBlogs() {
   });
 }
 
+function callReadBlog() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let readBlogRequest = new blogs.ReadBlogRequest();
+  readBlogRequest.setBlogId('7');
+  client.readBlog(readBlogRequest, (error, response) => {
+    if (!error) {
+      console.log(`Found a blog`, response.toString());
+    } else {
+      if (error.code === grpc.status.NOT_FOUND) {
+        console.log(`Not found`);
+      } else {
+        //
+      }
+    }
+  });
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
@@ -347,7 +398,9 @@ function main() {
   // callBiDirect();
   // callByDiFindMaximum();
   // doErrorCall();
-  callListBlogs();
+  // callListBlogs();
+  // createBlog();
+  callReadBlog();
 }
 
 main();

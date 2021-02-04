@@ -32,7 +32,67 @@ function listBlog(call, cb) {
     });
     call.end();
   });
+}
 
+function createBlog(call, cb) {
+  console.log(`Received Create Blog request`);
+
+  let blog = call.request.getBlog();
+  console.log('Inserting a Blog');
+
+  knex('blogs')
+    .insert({
+      author: blog.getAuthor(),
+      title: blog.getTitle(),
+      content: blog.getContent(),
+    })
+    .then(() => {
+      let id = blog.getId();
+      let addedBlog = new blogs.Blog();
+      addedBlog.setId(id);
+      addedBlog.setAuthor(blog.getAuthor());
+      addedBlog.setTitle(blog.getTitle());
+      addedBlog.setContent(blog.getContent());
+
+      let blogResponse = new blogs.CreateBlogResponse();
+
+      blogResponse.setBlog(addedBlog);
+
+      console.log(`Inserted Blog with ID: ${blogResponse}`);
+      cb(null, blogResponse);
+    });
+}
+
+function readBlog(call, cb) {
+  console.log(`Received Blog request`);
+
+  let blogId = call.request.getBlogId();
+
+  knex('blogs')
+    .where({ id: parseInt(blogId) })
+    .then((data) => {
+      console.log(`Searching for a blog...`);
+
+      if (data.length) {
+        let blog = new blogs.Blog();
+        console.log(`Blog found and sending message`);
+        blog.setId(blogId);
+        blog.setAuthor(data[0].author);
+        blog.setTitle(data[0].title);
+        blog.setContent(data[0].content);
+
+        let blogResponse = new blogs.ReadBlogResponse();
+        blogResponse.setBlog(blog);
+
+        cb(null, blogResponse);
+      } else {
+        console.log(`Blog not found`);
+        return cb({
+          code: grpc.status.NOT_FOUND,
+          message: 'Blog Not Found!',
+        });
+      }
+    });
 }
 
 function sum(call, callback) {
@@ -241,6 +301,8 @@ function main() {
   let server = new grpc.Server();
   server.addService(blogService.BlogServiceService, {
     listBlog,
+    createBlog,
+    readBlog
   });
   // server.addService(calcService.CalculatorServiceService, {
   //   sum,
