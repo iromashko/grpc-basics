@@ -95,6 +95,72 @@ function readBlog(call, cb) {
     });
 }
 
+function updateBlog(call, cb) {
+  console.log(`Received updated Blog Request`);
+  let blogId = call.request.getBlog().getId();
+  console.log(`Searching for a blog to update`);
+
+  knex('blogs')
+    .where({ id: parseInt(blogId) })
+    .update({
+      author: call.request.getBlog().getAuthor(),
+      title: call.request.getBlog().getTitle(),
+      content: call.request.getBlog().getContent(),
+    })
+    .returning()
+    .then((data) => {
+      if (data) {
+        let blog = new blogs.Blog();
+
+        console.log(`Blog found sending message...`);
+
+        blog.setId(blogId);
+        blog.setAuthor(data.author);
+        blog.setTitle(data.title);
+        blog.setContent(data.content);
+
+        let updateBlogResponse = new blogs.UpdateBlogResponse();
+        updateBlogResponse.setBlog(blog);
+
+        console.log(`Updated === ${updateBlogResponse.getBlog().getId()}`);
+        cb(null, updateBlogResponse);
+      } else {
+        return cb({
+          code: grpc.status.NOT_FOUND,
+          message: 'Blog with the corresponding id was not found',
+        });
+      }
+    });
+}
+
+function deleteBlog(call, cb) {
+  console.log(`Received Delete Blog Request`);
+  let blogId = call.request.getBlogId();
+
+  knex('blogs')
+    .where({ id: blogId })
+    .delete()
+    .returning()
+    .then((data) => {
+      console.log(`Blog deleting....`);
+      if (data) {
+        //TODO: check
+        let deleteBlogResponse = new blogs.DeleteBlogResponse();
+        deleteBlogResponse.setBlogId(blogId);
+        console.log(
+          `Blog requested in now deleted with id: ${deleteBlogResponse.toString()}`
+        );
+        cb(null, deleteBlogResponse);
+      } else {
+        console.log(`Not found...`)
+        return cb({
+          code: grpc.status.NOT_FOUND,
+          message: 'Blog with the corresponding id was not found',
+        });
+      }
+    });
+}
+
 function sum(call, callback) {
   let sumResponse = new calc.SumResponse();
 
@@ -302,7 +368,9 @@ function main() {
   server.addService(blogService.BlogServiceService, {
     listBlog,
     createBlog,
-    readBlog
+    readBlog,
+    updateBlog,
+    deleteBlog,
   });
   // server.addService(calcService.CalculatorServiceService, {
   //   sum,

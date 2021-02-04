@@ -10,12 +10,44 @@ let blogService = require('../server/protos/blog_grpc_pb');
 const fs = require('fs');
 
 let grpc = require('grpc');
+const { groupCollapsed } = require('console');
 
 const credentials = grpc.credentials.createSsl(
   fs.readFileSync('../certs/ca.crt'),
   fs.readFileSync('../certs/client.key'),
   fs.readFileSync('../certs/client.crt')
 );
+
+function callUpdateBlog() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+
+  let updateBlogRequest = new blogs.UpdateBlogRequest();
+  let newBlog = new blogs.Blog();
+
+  newBlog.setId('2');
+  newBlog.setAuthor('Gary');
+  newBlog.setTitle('Hello World!');
+  newBlog.setContent('This is great, again!');
+
+  updateBlogRequest.setBlog(newBlog);
+
+  console.log(`Blog... ${newBlog.toString()}`);
+
+  client.updateBlog(updateBlogRequest, (error, response) => {
+    if (!error) {
+      //
+    } else {
+      if (error.code === grpc.status.NOT_FOUND) {
+        console.log(`Not found`);
+      } else {
+        //
+      }
+    }
+  });
+}
 
 function callGreetings() {
   console.log(`hello`);
@@ -388,6 +420,29 @@ function callReadBlog() {
   });
 }
 
+function callDeleteBlog() {
+  let client = new blogService.BlogServiceClient(
+    'localhost:50051',
+    grpc.credentials.createInsecure()
+  );
+  const deleteBlogRequest = new blogs.DeleteBlogRequest();
+  const blogId = '4';
+
+  deleteBlogRequest.setBlogId(blogId);
+
+  client.deleteBlog(deleteBlogRequest, (error, response) => {
+    if (!error) {
+      console.log(`Deleted blog with id: ${response.toString()}`);
+    } else {
+      if (error.code === grpc.status.NOT_FOUND) {
+        console.log(`Not found`);
+      } else {
+        console.log(`Sorry something went wrong`);
+      }
+    }
+  });
+}
+
 function main() {
   // callGreetManyTimes();
   // callPrimeNumberDecomposition();
@@ -401,6 +456,8 @@ function main() {
   // callListBlogs();
   // createBlog();
   callReadBlog();
+  callUpdateBlog();
+  callDeleteBlog();
 }
 
 main();
